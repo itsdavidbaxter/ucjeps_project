@@ -1,4 +1,3 @@
-
 import re
 import time, datetime
 import csv
@@ -26,8 +25,8 @@ SOLRSERVER = 'http://localhost:8983/solr'
 #SOLRCORE = 'ucjeps-metadata'
 SOLRCORE = 'ucjeps-metadata'
 LOCALDIR = "/var/www/html/bmapper"  # no final slash
-DROPDOWNS = ['majorgroup','county','state','country']
-search_qualifiers = ['keyword','phrase','exact']
+DROPDOWNS = ['majorgroup', 'county', 'state', 'country']
+search_qualifiers = ['keyword', 'phrase', 'exact']
 
 FACETS = {}
 
@@ -63,6 +62,7 @@ PARMS = {
     'coordinateuncertaintyunit': ['Coordinate uncertainty unit', 'true', '', 'coordinateuncertaintyunit_txt', ''],
     'blobs': ['blob_ss', 'true', '', 'blob_ss', ''],
 }
+
 
 def deURN(urn):
     #find identifier in URN
@@ -113,6 +113,7 @@ def getfacets(response):
         _facets[key] = sorted(_v, key=lambda (a, b): b, reverse=True)
     return _facets
 
+
 def parseTerm(queryterm):
     queryterm = queryterm.strip(' ')
     terms = queryterm.split(' ')
@@ -120,6 +121,7 @@ def parseTerm(queryterm):
     result = ' AND '.join(terms)
     if 'AND' in result: result = '(' + result + ')' # we only need to wrap the query if it has multiple terms
     return result
+
 
 def makeMarker(result):
     if 'L1' in result and 'L2' in result:
@@ -129,10 +131,10 @@ def makeMarker(result):
     else:
         return None
 
-def writeCsv(filehandle, items, writeheader):
 
+def writeCsv(filehandle, items, writeheader):
     fieldset = getfields('csvdata')
-    writer = csv.writer(filehandle,delimiter='\t')
+    writer = csv.writer(filehandle, delimiter='\t')
     # write the berkeley mapper header as the header for the csv file, if asked...
     if writeheader:
         writer.writerow(getfields('bmapperheader'))
@@ -144,21 +146,21 @@ def writeCsv(filehandle, items, writeheader):
                 cell = item[x]
             else:
                 cell = ''
-            # the following few lines is a hack to handle non-unicode data which appears to be present in the solr datasource
-            if isinstance(cell,unicode):
+            # the following few lines are a hack to handle non-unicode data which appears to be present in the solr datasource
+            if isinstance(cell, unicode):
                 try:
-                    cell = cell.translate({0xd7 : u"x"})
-                    cell = cell.decode('utf-8','ignore').encode('utf-8')
+                    cell = cell.translate({0xd7: u"x"})
+                    cell = cell.decode('utf-8', 'ignore').encode('utf-8')
                     #cell = cell.decode('utf-8','ignore').encode('utf-8')
                     #cell = cell.decode('utf-8').encode('utf-8')
                 except:
-                    print 'unicode problem',cell.encode('utf-8','ignore')
+                    print 'unicode problem', cell.encode('utf-8', 'ignore')
                     cell = u'invalid unicode data'
             row.append(cell)
         writer.writerow(row)
 
-def setupGoogleMap(requestObject, context):
 
+def setupGoogleMap(requestObject, context):
     selected = []
     for p in requestObject:
         if 'item-' in p:
@@ -175,17 +177,17 @@ def setupGoogleMap(requestObject, context):
                 mappableitems.append(item)
     context['mapmsg'] = []
     if len(context['items']) < context['count']:
-        context['mapmsg'].append('%s points plotted. %s selected objects examined (of %s in result set).' % (len(markerlist), len(context['items']),context['count']))
+        context['mapmsg'].append('%s points plotted. %s selected objects examined (of %s in result set).' % (len(markerlist), len(context['items']), context['count']))
     else:
         context['mapmsg'].append('%s points plotted. all %s selected objects in result set examined.' % (len(markerlist), context['count']))
     context['items'] = mappableitems
     context['markerlist'] = '&markers='.join(markerlist[:MAXMARKERS])
     if len(markerlist) >= MAXMARKERS:
-        context['mapmsg'].append('%s points is the limit. Only first %s accessions (with latlongs) plotted!' % (MAXMARKERS,len(markerlist)))
+        context['mapmsg'].append('%s points is the limit. Only first %s accessions (with latlongs) plotted!' % (MAXMARKERS, len(markerlist)))
     return context
 
-def setupBMapper(requestObject, context):
 
+def setupBMapper(requestObject, context):
     context['berkeleymapper'] = 'set'
     mappableitems = []
     for item in context['items']:
@@ -195,19 +197,20 @@ def setupBMapper(requestObject, context):
     context['mapmsg'] = []
     filename = 'bmapper%s.csv' % datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
     #filehandle = open(filename, 'wb')
-    filehandle = open(path.join(LOCALDIR,filename), 'wb')
-    writeCsv(filehandle,mappableitems,writeheader=False)
+    filehandle = open(path.join(LOCALDIR, filename), 'wb')
+    writeCsv(filehandle, mappableitems, writeheader=False)
     filehandle.close()
-    context['mapmsg'].append('%s points of the %s selected objects examined had latlongs (%s in result set).' % (len(mappableitems), len(context['items']),context['count']))
+    context['mapmsg'].append('%s points of the %s selected objects examined had latlongs (%s in result set).' % (len(mappableitems), len(context['items']), context['count']))
     #context['mapmsg'].append('if our connection to berkeley mapper were working, you be able see them plotted there.')
     context['items'] = mappableitems
-    bmapperconfigfile = '%s/%s/%s' % (BMAPPERSERVER,BMAPPERDIR,BMAPPERCONFIGFILE)
-    tabfile = '%s/%s/%s' % (BMAPPERSERVER,BMAPPERDIR,filename)
-    context['bmapperurl'] = "http://berkeleymapper.berkeley.edu/run.php?ViewResults=tab&tabfile=%s&configfile=%s&sourcename=Consortium+of+California+Herbaria+result+set&maptype=Terrain" % (tabfile,bmapperconfigfile)
+    bmapperconfigfile = '%s/%s/%s' % (BMAPPERSERVER, BMAPPERDIR, BMAPPERCONFIGFILE)
+    tabfile = '%s/%s/%s' % (BMAPPERSERVER, BMAPPERDIR, filename)
+    context['bmapperurl'] = "http://berkeleymapper.berkeley.edu/run.php?ViewResults=tab&tabfile=%s&configfile=%s&sourcename=Consortium+of+California+Herbaria+result+set&maptype=Terrain" % (
+    tabfile, bmapperconfigfile)
     return HttpResponseRedirect(context['bmapperurl'])
 
-def setDisplayType(requestObject):
 
+def setDisplayType(requestObject):
     if 'displayType' in requestObject:
         displayType = requestObject['displayType']
     elif 'search-list' in requestObject:
@@ -221,13 +224,13 @@ def setDisplayType(requestObject):
 
     return displayType
 
-def setConstants(context):
 
+def setConstants(context):
     context['imageserver'] = IMAGESERVER
     context['dropdowns'] = FACETS
     context['timestamp'] = time.strftime("%b %d %Y %H:%M:%S", time.localtime())
     context['qualifiers'] = search_qualifiers
-    context['resultoptions'] = [100,500,1000,2000]
+    context['resultoptions'] = [100, 500, 1000, 2000]
 
     context['displayTypes'] = (
         ('list', 'List'),
@@ -260,8 +263,8 @@ def setConstants(context):
 
     return context
 
-def doSearch(solr_server, solr_core, context):
 
+def doSearch(solr_server, solr_core, context):
     elapsedtime = time.time()
     context = setConstants(context)
     requestObject = context['searchValues']
@@ -295,12 +298,12 @@ def doSearch(solr_server, solr_core, context):
                     if p in DROPDOWNS:
                         # if it's a value in a dropdown, it must always be an "exact search"
                         t = '"' + t + '"'
-                        index = PARMS[p][3].replace('_txt','_s')
-                    elif p+'_qualifier' in requestObject:
+                        index = PARMS[p][3].replace('_txt', '_s')
+                    elif p + '_qualifier' in requestObject:
                         # print 'qualifier:',requestObject[p+'_qualifier']
-                        qualifier = requestObject[p+'_qualifier']
+                        qualifier = requestObject[p + '_qualifier']
                         if qualifier == 'exact':
-                            index = PARMS[p][3].replace('_txt','_s')
+                            index = PARMS[p][3].replace('_txt', '_s')
                             t = '"' + t + '"'
                         elif qualifier == 'phrase':
                             index = PARMS[p][3]
@@ -309,11 +312,13 @@ def doSearch(solr_server, solr_core, context):
                             t = t.split(' ')
                             t = ' +'.join(t)
                             t = '(+' + t + ')'
+                            t = t.replace('+-', '-') # remove the plus if user entered a minus
                             index = PARMS[p][3]
                     else:
                         t = t.split(' ')
                         t = ' +'.join(t)
                         t = '(+' + t + ')'
+                        t = t.replace('+-', '-') # remove the plus if user entered a minus
                         index = PARMS[p][3]
                 if t == 'OR': t = '"OR"'
                 if t == 'AND': t = '"AND"'
@@ -344,7 +349,7 @@ def doSearch(solr_server, solr_core, context):
     results = response.results
 
     context['items'] = []
-    for i,listItem in enumerate(results):
+    for i, listItem in enumerate(results):
         item = {}
         item['counter'] = i
         for p in PARMS:
@@ -354,6 +359,15 @@ def doSearch(solr_server, solr_core, context):
                     item[p] = ', '.join(listItem[PARMS[p][3]])
                 else:
                     item[p] = listItem[PARMS[p][3]]
+
+                # handle dates (convert them to collatable strings)
+                if isinstance(item[p], datetime.date):
+                    try:
+                        item[p] = item[p].toordinal()
+                        #item[p] = item[p].isoformat().replace('T00:00:00+00:00', '')
+                    except:
+                        print 'date problem: ', item[p]
+
             except:
                 #raise
                 pass
@@ -373,9 +387,9 @@ def doSearch(solr_server, solr_core, context):
     #print 'items',len(context['items'])
     context['count'] = response._numFound
     m = {}
-    for p in PARMS: m[PARMS[p][3].replace('_txt','_s')] = p
+    for p in PARMS: m[PARMS[p][3].replace('_txt', '_s')] = p
     context['fields'] = [m[f] for f in facetfields]
-    context['facetflds'] = [[m[f],facetflds[f]] for f in facetfields]
+    context['facetflds'] = [[m[f], facetflds[f]] for f in facetfields]
     context['range'] = range(len(facetfields))
     context['pixonly'] = pixonly
     try:
@@ -394,7 +408,8 @@ def doSearch(solr_server, solr_core, context):
     return context
 
 # on startup, do a query to get options values for forms...
-context = {'displayType': 'list', 'searchValues': {'csv':'true', 'querystring':'*:*', 'url': '', 'maxresults': 0, 'maxfacets':1000}}
+context = {'displayType': 'list', 'maxresults': 0,
+           'searchValues': {'csv': 'true', 'querystring': '*:*', 'url': '', 'maxfacets': 1000}}
 context = doSearch(SOLRSERVER, SOLRCORE, context)
 
 for facet in context['facetflds']:

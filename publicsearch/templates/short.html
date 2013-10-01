@@ -29,8 +29,8 @@
             <td><a href="#"
                    onclick="submitForm('collector','{{ item.collector }}')">{{ item.collector }}</a>
             </td>
-            <td>
-                <a href="#"
+            <td><span style="display:none">{{ item.earlycollectiondate }}</span>
+                <a title="{{ item.earlycollectiondate }}" href="#"
                    onclick="submitForm('collectiondate','{{ item.collectiondate }}')">{{ item.collectiondate }}</a>
             </td>
             <td>

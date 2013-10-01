@@ -18,9 +18,9 @@ config = cspace_django_site.getConfig()
 SOLRSERVER = 'http://localhost:8983/solr'
 SOLRCORE = 'ucjeps-metadata'
 
-#@login_required()
-def publicsearch(request):
 
+@login_required()
+def publicsearch(request):
     if request.method == 'GET':
         requestObject = request.GET
     elif request.method == 'POST':
@@ -46,7 +46,7 @@ def publicsearch(request):
                 response = HttpResponse(content_type='text/csv')
                 response['Content-Disposition'] = 'attachment; filename="ucjeps.csv"'
                 #response.write(u'\ufeff'.encode('utf8'))
-                writeCsv(response,context['items'],writeheader=True)
+                writeCsv(response, context['items'], writeheader=True)
                 return response
             elif 'map-bmapper' in requestObject:
                 context = setupBMapper(requestObject, context)
