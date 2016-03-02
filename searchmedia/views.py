@@ -47,7 +47,7 @@ def search(request):
 
     loginfo(logger, 'start search', context, request)
     context['additionalInfo'] = AdditionalInfo.objects.filter(live=True)
-    return render(request, 'ucjeps_search.html', context)
+    return render(request, 'ucjeps_searchmedia.html', context)
 
 @login_required()
 def retrieveResults(request):
@@ -137,4 +137,4 @@ def loadNewFields(request, fieldfile, prmz):
 
     context = setConstants({}, prmz)
     loginfo(logger, 'loaded fields', context, request)
-    return render(request, 'ucjeps_search.html', context)
+    return render(request, 'ucjeps_searchmedia.html', context)
